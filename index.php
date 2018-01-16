@@ -112,7 +112,8 @@ function linkTo($label, $val)
         case "addresses":
             $link = "<a href=" . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . "?address=" . $val . ">$val</a>";
             break;
-
+	case "time":
+	    $link = gmdate("Y-m-d\TH:i:s\Z", $val);
         default:
             break;
     }
