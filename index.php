@@ -41,37 +41,38 @@ if (isset($qry["top20"])) {
     $usetop20 = $qry["top20"];
 }
 if (isset($qry["total"])) {
-    $usetotal= $qry["total"];
+    $usetotal = $qry["total"];
 }
+
+
 if (NULL != $usetotal) {
-    $input =  json_decode(
-         '{ "as of": "'. date(DATE_ISO8601).'", "coins": ' . json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value  . "}");
+    $input = json_decode(
+        '{ "as of": "' . date(DATE_ISO8601) . '", "coins": ' . json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value . "}");
 
 } else
-if (NULL != $usetop20) {
-    $input = json_decode(`./top20.sh`);
-} else
-    if (NULL != $useaddress) {
-        $amt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
-        $cnt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
-//$first=`jq    .rows[].value < <(curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22")`;
-        $input=[ "${useaddress}"=> ${$amt}->rows[0]->value ,
-           "transactions" => ${cnt}->rows[0]->value ];
+    if (NULL != $usetop20) {
+        $input = json_decode(`./top20.sh`);
+    } else
+        if (NULL != $useaddress) {
+            $amt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
+            $cnt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
+            $input = json_decode(json_encode(["${useaddress}" => $amt->rows[0]->value,
+                "transactions" => $cnt->rows[0]->value]));
 
-    } else if (NULL != $usetx) {
-        $json = `${_BLOCKCHAIND} gettransaction ${usetx}`;
-        $input = json_decode($json);
-    } else {
-        if (NULL != $useheight) {
-            $json = `${_BLOCKCHAIND} getblockbynumber ${useheight} true     `;
+        } else if (NULL != $usetx) {
+            $json = `${_BLOCKCHAIND} gettransaction ${usetx}`;
+            $input = json_decode($json);
         } else {
-            if (NULL == $useblock) {
-                $useblock = `${_BLOCKCHAIND} getbestblockhash  `;
+            if (NULL != $useheight) {
+                $json = `${_BLOCKCHAIND} getblockbynumber ${useheight} true     `;
+            } else {
+                if (NULL == $useblock) {
+                    $useblock = `${_BLOCKCHAIND} getbestblockhash  `;
+                }
+                $json = `${_BLOCKCHAIND} getblock ${useblock}  true  `;
             }
-            $json = `${_BLOCKCHAIND} getblock ${useblock}  true  `;
+            $input = json_decode($json);
         }
-        $input = json_decode($json);
-    }
 ?>
 
 <table>
@@ -82,6 +83,7 @@ if (NULL != $usetop20) {
 <?php
 echo "<p><a href=${_REURL}?top20=1> top 20 users</a>";
 echo "<p><a href=${_REURL}?total=1> total issued</a>";
+echo "<p><a href=${_REURL}?>most recent update</a>";
 ?>
 
 <?php
@@ -140,7 +142,6 @@ function html_table_write($inputObject, $label)
             break;
     }
     return $accum;
-
 }
 
 function linkTo($label, $val)
