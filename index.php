@@ -33,14 +33,26 @@ if (isset($qry["tx"])) {
     $usetx = $qry["tx"];
 }
 
-if (NULL != $usetx) {
+if (isset($qry["address"])) {
+    $useaddress = $qry["address"];
+}
+
+if(NULL!= $useaddress){
+$amt=json_decode( `curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
+$cnt=json_decode( `curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
+//$first=`jq    .rows[].value < <(curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22")`;
+ echo "the address ${useaddress} has obtained/retained roughly ". ${amt}->rows[0]->value ." in ". ${cnt}->rows[0]->value ." transactions";
+ exit(0);
+
+}
+else if (NULL != $usetx) {
     $json = `${_BLOCKCHAIND} gettransaction ${usetx}`;
 } else {
     if (NULL != $useheight) {
         $json = `${_BLOCKCHAIND} getblockbynumber ${useheight} true     `;
     } else {
         if (NULL == $useblock) {
-            $useblock = `${_BLOCKCHAIND} getbestblockhash`;
+            $useblock = `${_BLOCKCHAIND} getbestblockhash  `;
         }
         $json = `${_BLOCKCHAIND} getblock ${useblock}  true  `;
     }
