@@ -1,5 +1,20 @@
-<html>
-<head/>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>Document</title><style type='text/css'>
+      tbody {
+                        background-color: #c1c2ed;
+                     }
+      .hdr {
+            background-color: #FFEB3B;
+            box-shadow: inset -2px 2px 5px grey;
+        }
+        .data{
+            background-color: gainsboro ;
+            box-shadow: inset -2px 2px 5px grey;
+        }
+    </style>
+</head>
 <body>
 <?php
 $_BLOCKCHAIND = "~/stackbitd";
@@ -35,10 +50,9 @@ $input = json_decode($json);
 #printf($json);
 ?>
 
-
 <table>
     <?php
-    echo html_table_write($input);
+    echo html_table_write($input, "toplevel");
     ?>
 </table>
 <?php
@@ -60,20 +74,29 @@ function omitLabel($label)
  */
 function html_table_write($inputObject, $label)
 {
-    if (omitLabel($label)) return;
+    if (omitLabel($label)) {
+        return "";
+    }
     $typ = gettype($inputObject);
     $skip = false;
     $accum = "";
     switch ($typ) {
         case "array":
+            $accum .= "<td><table>";
             foreach ($inputObject as $val) {
-                $accum .= "<td> " . html_table_write($val, $label) . "</td>";
+                $accum .= "<tr>" . html_table_write($val, $label) . "</tr> ";
             }
+            $accum .= "</table></td>";
+
             break;
         case "object":
+            $accum .= "
+<td style='border: thin black;'><table>";
             foreach ($inputObject as $key => $val) {
-                $accum .= "<tr><th>$key</th>" . html_table_write($val, $key) . "</tr>";
+                $accum .= "
+<tr><th class='hdr'>$key</th>" . html_table_write($val, $key) . "</tr>";
             }
+            $accum .= "</table></td>";
             break;
         case "resource":
         case "NULL":
@@ -84,7 +107,7 @@ function html_table_write($inputObject, $label)
         case     "double" :
         case "string":
         default:
-            $accum .= "<td>" . linkTo($label, $inputObject) . "</td>";
+            $accum .= "<td class='data'>" . linkTo($label, $inputObject) . "</td>";
             break;
     }
     return $accum;
@@ -103,6 +126,11 @@ function linkTo($label, $val)
         case "txid":
             $link = "<a href=" . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . "?tx=$val title=$val>" . substr($val, 0, 8) . "</a>";
             break;
+        case "proofhash":
+        case "merkleroot":
+        case "signature":
+            $link = "<span title=$val>" . substr($val, 0, 8) . "...</span>";
+            break;
         case "previousblockhash":
         case "nextblockhash":
         case "blockhash":
@@ -112,13 +140,14 @@ function linkTo($label, $val)
         case "addresses":
             $link = "<a href=" . parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) . "?address=" . $val . ">$val</a>";
             break;
-	case "time":
-	    $link = gmdate("Y-m-d\TH:i:s\Z", $val);
+        case "time":
+            $link = gmdate("Y-m-d\TH:i:s\Z", $val);
         default:
             break;
     }
     return $link;
 }
+
 function matchSuffix($subject, $suffix)
 {
     return substr($subject, -strlen($suffix)) == $suffix ? "true" : "false";
