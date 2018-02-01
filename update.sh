@@ -1,3 +1,3 @@
 #!/bin/bash
-curl -XPUT  http://127.0.0.1:5984/sbit_blocks
-for (( i = $(~/stackbitd  getblockcount  ) ; i != 0 ; i-- )); do curl -f -XPUT  http://127.0.0.1:5984/sbit_blocks/$i -d@<(~/stackbitd  getblockbynumber ${i} true )||break ;  done
+curl -XPUT  http://127.0.0.1:5984/extn_blocks
+for (( i = $(~/extensivecoind  getblockcount  ) ; i != 0 ; i-- )); do curl -f -XPUT  http://127.0.0.1:5984/extn_blocks/$i -d@<(~/stackbitd  getblockbynumber ${i} true )||break ;  done

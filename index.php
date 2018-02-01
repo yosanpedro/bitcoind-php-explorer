@@ -20,7 +20,7 @@
 </head>
 <body>
 <?php
-$_BLOCKCHAIND = "~/stackbitd";
+$_BLOCKCHAIND = "~/extensivecoind";
 $qry = [];
 parse_str($_SERVER['QUERY_STRING'], $qry);
 global $_REURL;
@@ -47,15 +47,15 @@ if (isset($qry["total"])) {
 
 if (NULL != $usetotal) {
     $input = json_decode(
-        '{ "as of": "' . date(DATE_ISO8601) . '", "coins": ' . json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value . "}");
+        '{ "as of": "' . date(DATE_ISO8601) . '", "coins": ' . json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value . "}");
 
 } else
     if (NULL != $usetop20) {
         $input = json_decode(`./top20.sh`);
     } else
         if (NULL != $useaddress) {
-            $amt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
-            $cnt = json_decode(`curl "http://localhost:5984/sbit_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
+            $amt = json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
+            $cnt = json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
             $input = json_decode(json_encode(["${useaddress}" => $amt->rows[0]->value,
                 "transactions" => $cnt->rows[0]->value]));
 
