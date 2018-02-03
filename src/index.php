@@ -20,11 +20,12 @@
 </head>
 <body>
 <?php
-$_BLOCKCHAIND = "~/extensivecoind";
+$_BLOCKCHAINNAME = "@@BLOCKCHAINNAME@@"
+$_BLOCKCHAIND = "@@BITCOIND@@";
 $qry = [];
+global $_REURL = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 parse_str($_SERVER['QUERY_STRING'], $qry);
-global $_REURL;
-$_REURL = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
 if (isset($qry["block"])) {
     $useblock = $qry["block"];
 }
@@ -44,18 +45,17 @@ if (isset($qry["total"])) {
     $usetotal = $qry["total"];
 }
 
-
 if (NULL != $usetotal) {
     $input = json_decode(
-        '{ "as of": "' . date(DATE_ISO8601) . '", "coins": ' . json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value . "}");
+        '{ "as of": "' . date(DATE_ISO8601) . '", "coins": ' . json_decode(`curl "@@COUCHPREFIX@@/@@SYM@@_blocks/_design/address/_view/value?reduce=true&grouping=none" `)->rows[0]->value . "}");
 
 } else
     if (NULL != $usetop20) {
         $input = json_decode(`./top20.sh`);
     } else
         if (NULL != $useaddress) {
-            $amt = json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
-            $cnt = json_decode(`curl "http://localhost:5984/extn_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
+            $amt = json_decode(`curl "@@COUCHPREFIX@@/@@SYM@@_blocks/_design/address/_view/value?reduce=true&key=%22$useaddress%22" `);
+            $cnt = json_decode(`curl "@@COUCHPREFIX@@/@@SYM@@_blocks/_design/address/_view/counter?group=true&reduce=true&key=%22$useaddress%22" `);
             $input = json_decode(json_encode(["${useaddress}" => $amt->rows[0]->value,
                 "transactions" => $cnt->rows[0]->value]));
 
@@ -68,6 +68,7 @@ if (NULL != $usetotal) {
             } else {
                 if (NULL == $useblock) {
                     $useblock = `${_BLOCKCHAIND} getbestblockhash  `;
+                    `./update.sh`;
                 }
                 $json = `${_BLOCKCHAIND} getblock ${useblock}  true  `;
             }
@@ -81,9 +82,11 @@ if (NULL != $usetotal) {
     ?>
 </table>
 <?php
-echo "<p><a href=${_REURL}?top20=1> top 20 users</a>";
-echo "<p><a href=${_REURL}?total=1> total issued</a>";
-echo "<p><a href=${_REURL}?>most recent update</a>";
+echo <<<TAG
+<p><a href=${_REURL}?top20=1> top 20 users</a>
+<p><a href=${_REURL}?total=1> total issued</a>
+<p><a href=${_REURL}?>most recent update</a>
+TAG;
 ?>
 
 <?php
@@ -109,7 +112,7 @@ function html_table_write($inputObject, $label)
         return "";
     }
     $typ = gettype($inputObject);
-    $skip = false;
+
     $accum = "";
     switch ($typ) {
         case "array":
@@ -118,14 +121,11 @@ function html_table_write($inputObject, $label)
                 $accum .= "<tr>" . html_table_write($val, $label) . "</tr> ";
             }
             $accum .= "</table></td>";
-
             break;
         case "object":
-            $accum .= "
-<td style='border: thin black;'><table>";
+            $accum .= "<td style='border: thin black;'><table>";
             foreach ($inputObject as $key => $val) {
-                $accum .= "
-<tr><th class='hdr'>$key</th>" . html_table_write($val, $key) . "</tr>";
+                $accum .= "<tr><th class='hdr'>$key</th>" . html_table_write($val, $key) . "</tr>";
             }
             $accum .= "</table></td>";
             break;
@@ -144,6 +144,12 @@ function html_table_write($inputObject, $label)
     return $accum;
 }
 
+/**
+ * this function decorates a value as an anchor, or something else useful
+ * @param $label the json key
+ * @param $val the json value
+ * @return false|string
+ */
 function linkTo($label, $val)
 {
     global $_REURL;
@@ -178,7 +184,14 @@ function linkTo($label, $val)
     return $link;
 }
 
+/**
+ * cribbed from stackoverflow
+ *
+ * @param $subject
+ * @param $suffix
+ * @return bool
+ */
 function matchSuffix($subject, $suffix)
 {
-    return substr($subject, -strlen($suffix)) == $suffix ? "true" : "false";
+    return substr($subject, -strlen($suffix)) == $suffix;
 }
