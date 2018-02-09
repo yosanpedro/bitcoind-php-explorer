@@ -19,6 +19,7 @@ sed -i 's,@@'${i}'@@,'$(eval echo \$${i})',g' target/*
 done
 
 pushd target
+chmod a+x *.sh
 bash ./init.sh
 bash ./update.sh
 popd
