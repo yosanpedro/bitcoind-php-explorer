@@ -21,10 +21,10 @@ in bash:
 customize and run the generator (named armchair.sh)
 
 ```bash
-BITCOIND="~/bitcoind"                 \\
-BLOCKCHAINNAME="bitcoin"              \\
-COUCHPREFIX="http://127.0.0.1:5984"   \\       
-SYM="btc"                             \\
+BITCOIND_="~/bitcoind"                 \
+BLOCKCHAINNAME_="bitcoin"              \
+COUCHPREFIX_="http://127.0.0.1:5984"   \
+SYM_="btc"                             \
 ./armchair.sh
 ```
 
