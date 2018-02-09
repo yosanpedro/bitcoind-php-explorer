@@ -20,10 +20,10 @@
 </head>
 <body>
 <?php
-$_BLOCKCHAINNAME = "@@BLOCKCHAINNAME@@"
+$_BLOCKCHAINNAME = "@@BLOCKCHAINNAME@@";
 $_BLOCKCHAIND = "@@BITCOIND@@";
 $qry = [];
-global $_REURL = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$_REURL = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 parse_str($_SERVER['QUERY_STRING'], $qry);
 
 if (isset($qry["block"])) {
